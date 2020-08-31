@@ -33,13 +33,13 @@ struct ContentView: View {
             Text("Loading...")
         }
     }
-
+    
     struct SuccessView: View {
         var body: some View {
             Text("Success!")
         }
     }
-
+    
     struct FailedView: View {
         var body: some View {
             Text("Failed.")
@@ -55,29 +55,20 @@ struct ContentView: View {
         //            Text("\(user.lastName), \(user.firstName)")
         //        }
         
-        //        Text("Hello world")
-        //            .onTapGesture {
-        //                let str = "New Message"
-        //                let url = self.getDocumentDirectory().appendingPathComponent("message.txt")
-        //
-        //                do {
-        //                    try str.write(to: url, atomically: true, encoding: .utf8)
-        //                    let input = try String(contentsOf: url)
-        //                    print(input)
-        //                } catch {
-        //                    print(error.localizedDescription)
-        //                }
-        //        }
-        
-        Group {
-            if loadingState == .loading {
-                LoadingView()
-            } else if loadingState == .success {
-                SuccessView()
-            } else if loadingState == .failed {
-                FailedView()
-            }
+        Text("Hello world")
+            .onTapGesture {
+                FileManager.writeString("sasass.txt", message: "This is a test message")
         }
+        
+        //        Group {
+        //            if loadingState == .loading {
+        //                LoadingView()
+        //            } else if loadingState == .success {
+        //                SuccessView()
+        //            } else if loadingState == .failed {
+        //                FailedView()
+        //            }
+        //        }
     }
 }
 
@@ -95,4 +86,20 @@ struct User: Identifiable, Comparable {
     let id = UUID()
     let firstName: String
     let lastName: String
+}
+
+extension FileManager {
+    static func writeString(_ fileName: String, message: String) {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        let url = paths[0].appendingPathComponent(fileName)
+        let str = message
+        
+        do {
+            try str.write(to: url, atomically: true, encoding: .utf8)
+            let text = try String(contentsOf: url)
+            print(text)
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
 }
