@@ -15,8 +15,9 @@ struct ContentView: View {
     @State private var centerCoordinate = CLLocationCoordinate2D()
     @State private var locations = [CodableMKPointAnnotation]()
     @State private var selectedPlace: MKPointAnnotation?
-    @State private var showingPlaceDetails = false
     @State private var showingEditScreen = false
+    @State private var showAlert = false
+    @State private var bioMetricFail = false
     
     func authenticate() {
         let context = LAContext()
@@ -31,7 +32,9 @@ struct ContentView: View {
                     if success {
                         self.isUnlocked = true
                     } else {
-                        //
+                        print("Biometric fail")
+                        self.showAlert = true
+                        self.bioMetricFail = true
                     }
                 }
             }
@@ -69,7 +72,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             if isUnlocked {
-                MapView(centerCoordinate: $centerCoordinate, selectedPlace: $selectedPlace, showingPlaceDetails: $showingPlaceDetails, annotations: locations)
+                MapView(centerCoordinate: $centerCoordinate, selectedPlace: $selectedPlace, showingPlaceDetails: $showAlert, annotations: locations)
                     .edgesIgnoringSafeArea(.all)
                 Circle()
                     .fill(Color.blue)
@@ -88,13 +91,13 @@ struct ContentView: View {
                             self.showingEditScreen = true
                         }) {
                             Image(systemName: "plus")
+                                .padding()
+                                .background(Color.black.opacity(0.75))
+                                .foregroundColor(.white)
+                                .font(.title)
+                                .clipShape(Circle())
+                                .padding(.trailing)
                         }
-                        .padding()
-                        .background(Color.black.opacity(0.75))
-                        .foregroundColor(.white)
-                        .font(.title)
-                        .clipShape(Circle())
-                        .padding(.trailing)
                     }
                 }
             } else {
@@ -108,10 +111,16 @@ struct ContentView: View {
             }
         }
         .onAppear(perform: loadData)
-        .alert(isPresented: $showingPlaceDetails) {
-            Alert(title: Text(selectedPlace?.title ?? "Unknown"), message: Text(selectedPlace?.subtitle ?? "Missing place information."), primaryButton: .default(Text("OK")), secondaryButton: .default(Text("Edit")) {
-                self.showingEditScreen = true
-                })
+        .alert(isPresented: $showAlert) {
+            if bioMetricFail {
+                return Alert(title: Text("FaceID did't recognised"), dismissButton: .default(Text("OK")) {
+                    self.bioMetricFail.toggle()
+                    })
+            } else {
+                return Alert(title: Text(selectedPlace?.title ?? "Unknown"), message: Text(selectedPlace?.subtitle ?? "Missing place information."), primaryButton: .default(Text("OK")), secondaryButton: .default(Text("Edit")) {
+                    self.showingEditScreen = true
+                    })
+            }
         }
         .sheet(isPresented: $showingEditScreen, onDismiss: saveData) {
             if self.selectedPlace != nil {
